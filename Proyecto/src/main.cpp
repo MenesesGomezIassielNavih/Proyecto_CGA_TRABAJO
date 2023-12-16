@@ -56,6 +56,8 @@
 // OpenAL include
 #include <AL/alut.h>
 
+#include <windows.h>
+
 #define ARRAY_SIZE_IN_ELEMENTS(a) (sizeof(a)/sizeof(a[0]))
 
 int screenWidth;
@@ -161,7 +163,7 @@ Model cowboyModelAnimate;
 // Guardian con lampara
 Model guardianModelAnimate;
 // Cybog
-Model cyborgModelAnimate;
+Model zombiModelAnimate;
 //Enemy
 Model enemyModelAnimate;
 // Fountain
@@ -192,6 +194,22 @@ Model modelAtaud2c;
 Model modelAtaud2d;
 
 Model modelArco;
+
+Model modelZombi_1a;
+Model modelZombi_1b;
+Model modelZombi_1c;
+Model modelZombi_1d;
+
+Model modelZombi_2a;
+Model modelZombi_2b;
+Model modelZombi_2c;
+
+Model modelZombi_3a;
+Model modelZombi_3b;
+Model modelZombi_3c;
+
+
+
 
 
 
@@ -229,12 +247,12 @@ GL_TEXTURE_CUBE_MAP_NEGATIVE_Z };
 
 
 //************** carga de texturas para CUBEMAP*************
-std::string fileNames[6] = { "../Textures/mp_bloodvalley/blood-valley_ft.tga",
-		"../Textures/mp_bloodvalley/blood-valley_bk.tga",
-		"../Textures/mp_bloodvalley/blood-valley_up.tga",
-		"../Textures/mp_bloodvalley/blood-valley_dn.tga",
-		"../Textures/mp_bloodvalley/blood-valley_rt.tga",
-		"../Textures/mp_bloodvalley/blood-valley_lf.tga" };
+std::string fileNames[6] = { "../Textures/ulukai/corona_ft.tga",
+		"../Textures/ulukai/corona_bk.tga",
+		"../Textures/ulukai/corona_up.tga",
+		"../Textures/ulukai/corona_dn.tga",
+		"../Textures/ulukai/corona_rt.tga",
+		"../Textures/ulukai/corona_lf.tga" };
 
 bool exitApp = false;
 int lastMousePosX, offsetX = 0;
@@ -253,7 +271,7 @@ glm::mat4 modelMatrixBuzz = glm::mat4(1.0f);
 glm::mat4 modelMatrixLuffy = glm::mat4(1.0f);  //<<<<<<<<<<<<LUFFY
 glm::mat4 modelMatrixCowboy = glm::mat4(1.0f);
 glm::mat4 modelMatrixGuardian = glm::mat4(1.0f);
-glm::mat4 modelMatrixCyborg = glm::mat4(1.0f);
+glm::mat4 modelMatrixZombi = glm::mat4(1.0f);
 glm::mat4 modelMatrixEnemy = glm::mat4(1.0f);  // <<<<<ENEMY
 glm::mat4 modelMatrixFountain = glm::mat4(1.0f);
 glm::mat4 modelMatrixFruta = glm::mat4(1.0f);
@@ -292,11 +310,24 @@ glm::mat4 modelMatrixAtaud2d = glm::mat4(1.0f);
 
 glm::mat4 modelMatrixArco = glm::mat4(1.0f);
 
+glm::mat4 modelMatrixZombi_1a = glm::mat4(1.0f); 
+glm::mat4 modelMatrixZombi_1b = glm::mat4(1.0f); 
+glm::mat4 modelMatrixZombi_1c = glm::mat4(1.0f); 
+glm::mat4 modelMatrixZombi_1d = glm::mat4(1.0f); 
+glm::mat4 modelMatrixZombi_2a = glm::mat4(1.0f); 
+glm::mat4 modelMatrixZombi_2b = glm::mat4(1.0f); 
+
+glm::mat4 modelMatrixZombi_2c = glm::mat4(1.0f); 
+glm::mat4 modelMatrixZombi_3a = glm::mat4(1.0f); 
+glm::mat4 modelMatrixZombi_3b = glm::mat4(1.0f); 
+glm::mat4 modelMatrixZombi_3c = glm::mat4(1.0f); 
+
 
 
 int sumaColisionOBB_OBB = 0;
 int puntuacion =0;
 int puntuacionTotal = 0;
+bool gameOver = false;
 //char puntuacion1[20] = "100 puntos", puntuacion2[20]= "200 puntos", puntuacion3[20]= "300 puntos", 
 //		puntuacion4[20]="400 puntos", puntuacion5[20]= "500 puntos";
 
@@ -345,6 +376,9 @@ int numPasosBuzz = 0;
 // Var animate helicopter
 float rotHelHelY = 0.0;
 float rotHelHelBack = 0.0;
+float x1 = 0.0f, z1=0.0f;
+bool limite_acercar = false;
+float energiaVida = 100;
 
 // Var animate lambo dor
 int stateDoor = 0;
@@ -409,6 +443,7 @@ double currTime, lastTime;
 // Jump variables
 bool isJump = false;
 bool isPunch = false;
+bool isRecolect = false;
 float GRAVITY = 1.81;
 double tmv = 0;
 double startTimeJump = 0;
@@ -450,6 +485,17 @@ bool visibleFruta7 = true;
 bool visibleFruta8 = true;
 bool visibleFruta9 = true;
 
+bool visibleZombi = true;
+bool visibleZombi_1a = true;
+bool visibleZombi_1b = true;
+bool visibleZombi_1c = true;
+bool visibleZombi_1d = true;
+bool visibleZombi_2a = true;
+bool visibleZombi_2b = true;
+bool visibleZombi_2c = true;
+bool visibleZombi_3a = true;
+bool visibleZombi_3b = true;
+bool visibleZombi_3c = true;
 
 //
 // Definition for the particle system
@@ -485,8 +531,8 @@ float rotWheelsY = 0.0;
 //Para el sonido del sistema se definen y establecen las variables y Arrays
 
 // OpenAL Defines
-#define NUM_BUFFERS 3
-#define NUM_SOURCES 3
+#define NUM_BUFFERS 9
+#define NUM_SOURCES 9
 #define NUM_ENVIRONMENTS 1
 // Listener
 ALfloat listenerPos[] = { 0.0, 0.0, 4.0 };
@@ -501,6 +547,24 @@ ALfloat source1Vel[] = { 0.0, 0.0, 0.0 };
 // Source 2
 ALfloat source2Pos[] = { 2.0, 0.0, 0.0 };
 ALfloat source2Vel[] = { 0.0, 0.0, 0.0 };
+//Source3
+ALfloat source3Pos[]=  { 2.0, 0.0, 0.0 };
+ALfloat source3Vel[]=  { 0.0, 0.0, 0.0 };
+//Source4
+ALfloat source4Pos[]={ 2.0, 0.0, 0.0 };
+ALfloat source4Vel[]={ 2.0, 0.0, 0.0 };
+//Source5
+ALfloat source5Pos[]={0.0,0.0,0.0};
+ALfloat source5Vel[]={0.0,0.0,0.0};
+//Source6
+ALfloat source6Pos[]={0.0,0.0,0.0};
+ALfloat source6Vel[]={0.0,0.0,0.0};
+//Source7
+ALfloat source7Pos[]={0.0,0.0,0.0};
+ALfloat source7Vel[]={0.0,0.0,0.0};
+//Source8
+ALfloat source8Pos[]={0.0,0.0,0.0};
+ALfloat source8Vel[]={0.0,0.0,0.0};
 // Buffers
 ALuint buffer[NUM_BUFFERS];
 ALuint source[NUM_SOURCES];
@@ -535,6 +599,7 @@ void prepareDepthScene();
 void renderSolidScene();
 void renderAlphaScene(bool render = true);
 void renderScene();
+void applicationLoop();
 
 
 //****** Esta Clase inicializa los BÃƒÅ¡FERES DE PARTICULAS
@@ -830,7 +895,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	modelHeliChasis.setShader(&shaderMulLighting);
 	modelHeliHeli.loadModel("../models/Helicopter/Mi_24_heli.obj");
 	modelHeliHeli.setShader(&shaderMulLighting);
-	modelHeliHeliBack.loadModel("../models/Helicopter/Mi_24_heli_back.obj");
+	modelHeliHeliBack.loadModel("../models/Helicopter/Mi_24_heli_rear.obj");
 	modelHeliHeliBack.setShader(&shaderMulLighting);
 	// Lamborginhi
 	modelLambo.loadModel("../models/Lamborginhi_Aventador_OBJ/Lamborghini_Aventador_chasis.obj");
@@ -907,9 +972,11 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	//Se pueden agregar otros modelos, despues de haber definido los Modelos arriba
 
-	//enemyModelAnimate.loadModel("../models/Moria/moria_camina3.fbx");
+	
 	enemyModelAnimate.loadModel("../models/Enemy/Enemy_todas.fbx");
 	enemyModelAnimate.setShader(&shaderMulLighting);
+
+
 	
 	// Cowboy
 	cowboyModelAnimate.loadModel("../models/cowboy/Character Running.fbx");
@@ -919,9 +986,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	guardianModelAnimate.loadModel("../models/boblampclean/boblampclean.md5mesh");
 	guardianModelAnimate.setShader(&shaderMulLighting);
 
-	// Cyborg
-	cyborgModelAnimate.loadModel("../models/cyborg/cyborg.fbx");
-	cyborgModelAnimate.setShader(&shaderMulLighting);
+	// Zombi
+	//zombiModelAnimate.loadModel("../models/action_zombies/Z_Char1_corriendo.fbx");
+	zombiModelAnimate.loadModel("../models/action_zombies/Z_Char1_corriendo.fbx");
+	zombiModelAnimate.setShader(&shaderMulLighting);
 
 	//Grass
 	modelGrass.loadModel("../models/grass/grassModel.obj");
@@ -990,6 +1058,38 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	modelArco.setShader(&shaderMulLighting);
 
 
+	
+	modelZombi_1a.loadModel("../models/action_zombies/Z_Char1_camina_B.fbx");
+	modelZombi_1a.setShader(&shaderMulLighting);
+
+	modelZombi_1b.loadModel("../models/action_zombies/Z_Char1_camina_B.fbx");
+	modelZombi_1b.setShader(&shaderMulLighting);
+
+	modelZombi_1c.loadModel("../models/action_zombies/Z_Char1_camina_B.fbx");
+	modelZombi_1c.setShader(&shaderMulLighting);
+
+	modelZombi_1d.loadModel("../models/action_zombies/Z_Char1_camina_B.fbx");
+	modelZombi_1d.setShader(&shaderMulLighting);
+
+	modelZombi_2a.loadModel("../models/action_zombies/Z_Char1_camina_C.fbx");
+	modelZombi_2a.setShader(&shaderMulLighting);
+
+	modelZombi_2b.loadModel("../models/action_zombies/Z_Char1_camina_C.fbx");
+	modelZombi_2b.setShader(&shaderMulLighting);
+
+	modelZombi_2c.loadModel("../models/action_zombies/Z_Char1_camina_C.fbx");
+	modelZombi_2c.setShader(&shaderMulLighting);
+
+	modelZombi_3a.loadModel("../models/action_zombies/Z_Char1_camina_.fbx");
+	modelZombi_3a.setShader(&shaderMulLighting);
+
+	modelZombi_3b.loadModel("../models/action_zombies/Z_Char1_camina_.fbx");
+	modelZombi_3b.setShader(&shaderMulLighting);
+
+	modelZombi_3c.loadModel("../models/action_zombies/Z_Char1_camina_.fbx");
+	modelZombi_3c.setShader(&shaderMulLighting);
+
+	
 
 
 	// Carga de Terreno Terreno
@@ -1443,8 +1543,15 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	// Generate buffers, or else no sound will happen!
 	alGenBuffers(NUM_BUFFERS, buffer);
 	buffer[0] = alutCreateBufferFromFile("../sounds/fountain.wav");
-	buffer[1] = alutCreateBufferFromFile("../sounds/fire.wav");
-	buffer[2] = alutCreateBufferFromFile("../sounds/darth_vader.wav");
+	buffer[1] = alutCreateBufferFromFile("../sounds/Synthezx.wav");//salto
+	buffer[2] = alutCreateBufferFromFile("../sounds/step.wav");
+	buffer[3] = alutCreateBufferFromFile("../sounds/Jumping.wav");//ambiente
+	buffer[4] = alutCreateBufferFromFile("../sounds/Binks.wav");//menu
+	buffer[5] = alutCreateBufferFromFile("../sounds/Myuu_Final_Boss.wav");//boss
+	buffer[6] = alutCreateBufferFromFile("../sounds/gore_hit.wav");//--luffy es golpeado
+	buffer[7] = alutCreateBufferFromFile("../sounds/block_hit.wav");//-luffy golpea
+	buffer[8] = alutCreateBufferFromFile("../sounds/fruit_pick_2.wav");//-luffy recoge fruta
+    
 	int errorAlut = alutGetError();
 	if (errorAlut != ALUT_ERROR_NO_ERROR){
 		printf("- Error open files with alut %d !!\n", errorAlut);
@@ -1461,6 +1568,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	else {
 		printf("init - no errors after alGenSources\n");
 	}
+	//fuente
 	alSourcef(source[0], AL_PITCH, 1.0f);
 	alSourcef(source[0], AL_GAIN, 3.0f);
 	alSourcefv(source[0], AL_POSITION, source0Pos);
@@ -1469,14 +1577,16 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	alSourcei(source[0], AL_LOOPING, AL_TRUE);
 	alSourcef(source[0], AL_MAX_DISTANCE, 2000);
 
+	//ambiental
 	alSourcef(source[1], AL_PITCH, 1.0f);
-	alSourcef(source[1], AL_GAIN, 0.5f);
+	alSourcef(source[1], AL_GAIN, 0.08f);
 	alSourcefv(source[1], AL_POSITION, source1Pos);
 	alSourcefv(source[1], AL_VELOCITY, source1Vel);
 	alSourcei(source[1], AL_BUFFER, buffer[1]);
 	alSourcei(source[1], AL_LOOPING, AL_TRUE);
 	alSourcef(source[1], AL_MAX_DISTANCE, 1000);
 
+	//run
 	alSourcef(source[2], AL_PITCH, 1.0f);
 	alSourcef(source[2], AL_GAIN, 0.3f);
 	alSourcefv(source[2], AL_POSITION, source2Pos);
@@ -1484,6 +1594,60 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	alSourcei(source[2], AL_BUFFER, buffer[2]);
 	alSourcei(source[2], AL_LOOPING, AL_TRUE);
 	alSourcef(source[2], AL_MAX_DISTANCE, 2000);
+
+	//jump
+	alSourcef(source[3], AL_PITCH, 1.0f);
+	alSourcef(source[3], AL_GAIN, 4.0);
+	alSourcefv(source[3], AL_POSITION, source3Pos);
+	alSourcefv(source[3], AL_VELOCITY, source3Vel);
+	alSourcei(source[3], AL_BUFFER, buffer[3]);
+	alSourcei(source[3], AL_LOOPING, AL_TRUE);
+	alSourcef(source[3], AL_MAX_DISTANCE, 2000);
+
+    //menu
+	alSourcef(source[4], AL_PITCH, 1.0f);
+	alSourcef(source[4], AL_GAIN, 3.0f);
+	alSourcefv(source[4], AL_POSITION, source4Pos);
+	alSourcefv(source[4], AL_VELOCITY, source4Vel);
+	alSourcei(source[4], AL_BUFFER, buffer[4]);
+	alSourcei(source[4], AL_LOOPING, AL_TRUE);
+	alSourcef(source[4], AL_MAX_DISTANCE, 2000);
+
+    //boss
+	alSourcef(source[5], AL_PITCH, 1.0f);
+	alSourcef(source[5], AL_GAIN, 0.3f);
+	alSourcefv(source[5], AL_POSITION, source5Pos);
+	alSourcefv(source[5], AL_VELOCITY, source5Vel);
+	alSourcei(source[5], AL_BUFFER, buffer[5]);
+	alSourcei(source[5], AL_LOOPING, AL_TRUE);
+	alSourcef(source[5], AL_MAX_DISTANCE, 2000);
+
+    //luffy_loss
+	alSourcef(source[6], AL_PITCH, 1.0f);
+	alSourcef(source[6], AL_GAIN, 0.3f);
+	alSourcefv(source[6], AL_POSITION, source6Pos);
+	alSourcefv(source[6], AL_VELOCITY, source6Vel);
+	alSourcei(source[6], AL_BUFFER, buffer[6]);
+	alSourcei(source[6], AL_LOOPING, AL_TRUE);
+	alSourcef(source[6], AL_MAX_DISTANCE, 2000);
+
+    //luffy_hit
+	alSourcef(source[7], AL_PITCH, 1.0f);
+	alSourcef(source[7], AL_GAIN, 0.3f);
+	alSourcefv(source[7], AL_POSITION, source7Pos);
+	alSourcefv(source[7], AL_VELOCITY, source7Vel);
+	alSourcei(source[7], AL_BUFFER, buffer[7]);
+	alSourcei(source[7], AL_LOOPING, AL_TRUE);
+	alSourcef(source[7], AL_MAX_DISTANCE, 2000);
+
+    //luffy_eat
+	alSourcef(source[8], AL_PITCH, 1.0f);
+	alSourcef(source[8], AL_GAIN, 0.3f);
+	alSourcefv(source[8], AL_POSITION, source8Pos);
+	alSourcefv(source[8], AL_VELOCITY, source8Vel);
+	alSourcei(source[8], AL_BUFFER, buffer[8]);
+	alSourcei(source[8], AL_LOOPING, AL_TRUE);
+	alSourcef(source[8], AL_MAX_DISTANCE, 2000);
 
 }
 
@@ -1562,7 +1726,7 @@ void destroy() {
 	luffyModelAnimate.destroy();
 	cowboyModelAnimate.destroy();
 	guardianModelAnimate.destroy();
-	cyborgModelAnimate.destroy();
+	zombiModelAnimate.destroy();
 	enemyModelAnimate.destroy();
 	modelFountain.destroy();
 	modelFruta.destroy();
@@ -1590,6 +1754,36 @@ void destroy() {
 	modelAtaud2d.destroy();
 
 	modelArco.destroy();
+
+	modelZombi_1a.destroy();
+	
+
+	modelZombi_1b.destroy();
+	
+
+	modelZombi_1c.destroy();
+	
+
+	modelZombi_1d.destroy();
+	
+
+	modelZombi_2a.destroy();
+	
+
+	modelZombi_2b.destroy();
+	
+
+	modelZombi_2c.destroy();
+	
+
+	modelZombi_3a.destroy();
+	
+
+	modelZombi_3b.destroy();
+	
+
+	modelZombi_3c.destroy();
+	
 
 
 	// Terrains objects Delete
@@ -1685,12 +1879,14 @@ void mouseButtonCallback(GLFWwindow *window, int button, int state, int mod) {
 //******** funcion de ENTRADA DE PROCESO
 
 bool processInput(bool continueApplication) {
+	sourcesPlay[4]=true;
 	if (exitApp || glfwWindowShouldClose(window) != 0) {
 		return false;
 	}
 
-	//***para INICIAR LA PARTIDA
-	if(!iniciaPartida){
+	if(!gameOver)
+	{
+	if(!iniciaPartida ){
 		bool presionarEnter = glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS;
 		if(textureActivaID == textureInit1ID && presionarEnter){
 			iniciaPartida = true;
@@ -1707,36 +1903,68 @@ bool processInput(bool continueApplication) {
 			presionarOpcion = false;
 	}
 
+	}
 
-	if (sumaColisionOBB_OBB>=1 && sumaColisionOBB_OBB <30)
+	if(gameOver)
+	{
+	
+	iniciaPartida = false;
+	//********** TEXTURAS DE LA Pantalla Inicial
+	// Definiendo la textura
+	textureActivaID = textureInit1ID;
+	if(!iniciaPartida ){
+		bool presionarEnter = glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS;
+		if(textureActivaID == textureInit1ID && presionarEnter){
+			iniciaPartida = true;
+			textureActivaID = textureScreenID;
+		}
+		else if(!presionarOpcion && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS){
+			presionarOpcion = true;
+			if(textureActivaID == textureInit1ID)
+				textureActivaID = textureInit2ID;
+			else if(textureActivaID == textureInit2ID)
+				textureActivaID = textureInit1ID;
+		}
+		else if(glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_RELEASE)
+			presionarOpcion = false;
+	}
+
+	}
+
+	//***para INICIAR LA PARTIDA
+
+	
+	
+	if (sumaColisionOBB_OBB >=1.0 && sumaColisionOBB_OBB <20.0)
 	{
 		textureActivaID = textureScreen1ID;
 		
 	}
-	if (sumaColisionOBB_OBB>=31 && sumaColisionOBB_OBB <60)
+	if (sumaColisionOBB_OBB>=21.0 && sumaColisionOBB_OBB <40.0)
 	{
 		textureActivaID = textureScreen2ID;
 		
 	}
-	if (sumaColisionOBB_OBB>=61 && sumaColisionOBB_OBB <80)
+	if (sumaColisionOBB_OBB>=41.0 && sumaColisionOBB_OBB <60.0)
 	{
 		textureActivaID = textureScreen3ID;
 		
 	}
-	if (sumaColisionOBB_OBB>=81 && sumaColisionOBB_OBB <100)
+	if (sumaColisionOBB_OBB>=61.0 && sumaColisionOBB_OBB <70.0)
 	{
 		textureActivaID = textureScreen4ID;
 		
 	}
-	if (sumaColisionOBB_OBB>=101 && sumaColisionOBB_OBB <120)
+	if (sumaColisionOBB_OBB>=71.0 && sumaColisionOBB_OBB <80.0)
 	{
 		textureActivaID = textureScreen5ID;
 		
 	}
-	if (sumaColisionOBB_OBB>=121&& sumaColisionOBB_OBB <125)
+	if (sumaColisionOBB_OBB>=81.0&& sumaColisionOBB_OBB <100.0)
 	{
 		textureActivaID = textureScreenID;
-		sumaColisionOBB_OBB = 0;
+
+		//sumaColisionOBB_OBB = 0.0;
 		
 	}
 	
@@ -1941,17 +2169,21 @@ bool processInput(bool continueApplication) {
 	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
 		modelMatrixLuffy = glm::rotate(modelMatrixLuffy, 0.05f, glm::vec3(0, 1, 0));
 		animationLuffyIndex = correr;
+		sourcesPlay[2]=true;
 	} else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS){
 		modelMatrixLuffy = glm::rotate(modelMatrixLuffy, -0.05f, glm::vec3(0, 1, 0));
 		animationLuffyIndex = correr;
+		sourcesPlay[2]=true;
 	}
 	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
 		modelMatrixLuffy = glm::translate(modelMatrixLuffy, glm::vec3(0.0, 0.0, 0.5));
 		animationLuffyIndex = correr;
+		sourcesPlay[2]=true;
 	}
 	else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
 		modelMatrixLuffy = glm::translate(modelMatrixLuffy, glm::vec3(0.0, 0.0, -0.5));
 		animationLuffyIndex = correr;
+		sourcesPlay[2]=true;
 	}
 	//Movimiento LUFFY GOLPEA
 	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS){
@@ -1998,10 +2230,14 @@ bool processInput(bool continueApplication) {
 		isJump = true;
 		startTimeJump = currTime;
 		tmv = 0;
+		sourcesPlay[3]=true;
+		
+		
 	}
 	//control del salto
 	if(isJump==true){
 		animationLuffyIndex = saltar;
+	
 	}
 	//control del golpe
 	if(isPunch==true){
@@ -2034,9 +2270,11 @@ bool processInput(bool continueApplication) {
 		if(fabs(axes[1]) > 0.2){
 			modelMatrixLuffy = glm::translate(modelMatrixLuffy, glm::vec3(0, 0, -axes[1] * 0.8));
 			animationLuffyIndex = correr;
+			sourcesPlay[2]=true;
 		}if(fabs(axes[0]) > 0.2){
 			modelMatrixLuffy = glm::rotate(modelMatrixLuffy, glm::radians(-axes[0] * 3.5f), glm::vec3(0, 1, 0));
 			animationLuffyIndex = correr;
+			sourcesPlay[2]=true;
 		}
 
 		//Movimiento de la camara alrededor de LUFFY
@@ -2063,10 +2301,12 @@ bool processInput(bool continueApplication) {
 			isJump = true;
 			startTimeJump = currTime;
 			tmv = 0;
+			sourcesPlay[3]=true;
 		}
 		//Golpe
 		if(!isPunch && buttons[1] == GLFW_PRESS){
 			isPunch = true;
+			
 		
 		}
 		//Recoger
@@ -2095,7 +2335,7 @@ bool processInput(bool continueApplication) {
 //******Funcion de Prepraracion de Escena
 void prepareScene(){
 
-	skyboxSphere.setShader(&shaderSkybox);  // <<Esta es para las particulas Fuego
+	//skyboxSphere.setShader(&shaderSkybox);  // <<Esta es para las particulas Fuego
 
 	terrain.setShader(&shaderTerrain);
 	
@@ -2158,8 +2398,8 @@ void prepareScene(){
 	//Guardian
 	//guardianModelAnimate.setShader(&shaderMulLighting);
 
-	//Cyborg
-	//cyborgModelAnimate.setShader(&shaderMulLighting);
+	//Zombi //Zombie
+	zombiModelAnimate.setShader(&shaderMulLighting);
 
 	//Enemy
 	enemyModelAnimate.setShader(&shaderMulLighting);  //<<Otro personaje principal
@@ -2223,13 +2463,44 @@ void prepareScene(){
 
 
 
+	modelZombi_1a.setShader(&shaderMulLighting);
+	
+
+	modelZombi_1b.setShader(&shaderMulLighting);
+	
+
+	modelZombi_1c.setShader(&shaderMulLighting);
+	
+
+	modelZombi_1d.setShader(&shaderMulLighting);
+	
+
+	modelZombi_2a.setShader(&shaderMulLighting);
+	
+
+	modelZombi_2b.setShader(&shaderMulLighting);
+	
+
+	modelZombi_2c.setShader(&shaderMulLighting);
+	
+
+	modelZombi_3a.setShader(&shaderMulLighting);
+	
+
+	modelZombi_3b.setShader(&shaderMulLighting);
+	
+
+	modelZombi_3c.setShader(&shaderMulLighting);
+	
+
+
 }
 
 
 //************* Preparacion de Profundidad de Escena 
 void prepareDepthScene(){
 
-	skyboxSphere.setShader(&shaderDepth);
+	//skyboxSphere.setShader(&shaderDepth);
 
 	terrain.setShader(&shaderDepth);
 	
@@ -2296,8 +2567,8 @@ void prepareDepthScene(){
 	//Guardian
 	//guardianModelAnimate.setShader(&shaderDepth);
 
-	//Cyborg
-	//cyborgModelAnimate.setShader(&shaderDepth);
+	//Zombi //Zombie
+	zombiModelAnimate.setShader(&shaderDepth);
 
 	// Fountain
 	modelFountain.setShader(&shaderDepth);
@@ -2355,6 +2626,35 @@ void prepareDepthScene(){
 
 	
 	modelArco.setShader(&shaderDepth);
+
+	modelZombi_1a.setShader(&shaderDepth);
+	
+
+	modelZombi_1b.setShader(&shaderDepth);
+	
+
+	modelZombi_1c.setShader(&shaderDepth);
+	
+
+	modelZombi_1d.setShader(&shaderDepth);
+	
+
+	modelZombi_2a.setShader(&shaderDepth);
+	
+
+	modelZombi_2b.setShader(&shaderDepth);
+	
+
+	modelZombi_2c.setShader(&shaderDepth);
+	
+
+	modelZombi_3a.setShader(&shaderDepth);
+	
+
+	modelZombi_3b.setShader(&shaderDepth);
+	
+
+	modelZombi_3c.setShader(&shaderDepth);
 
 }
 
@@ -2581,11 +2881,14 @@ void renderSolidScene(){
 	glEnable(GL_CULL_FACE);
 
 	glDisable(GL_CULL_FACE);
-	modelMatrixCyborg[3][1] = terrain.getHeightTerrain(modelMatrixCyborg[3][0], modelMatrixCyborg[3][2]);
-	glm::mat4 modelMatrixCyborgBody = glm::mat4(modelMatrixCyborg);
-	modelMatrixCyborgBody = glm::scale(modelMatrixCyborgBody, glm::vec3(0.009f));
-	cyborgModelAnimate.setAnimationIndex(1);
-	//yborgModelAnimate.render(modelMatrixCyborgBody);
+	modelMatrixZombi[3][1] = terrain.getHeightTerrain(modelMatrixZombi[3][0], modelMatrixZombi[3][2]);
+	glm::mat4 modelMatrixZombiBody = glm::mat4(modelMatrixZombi);
+	//if(!limite_acercar)
+	//	modelMatrixZombiBody = glm::translate(modelMatrixZombiBody, glm::vec3(x1, 0.0f, 0.0f)); //<<para acercarse a Luffy
+	modelMatrixZombiBody = glm::scale(modelMatrixZombiBody, glm::vec3(0.015f));
+	zombiModelAnimate.setAnimationIndex(0);
+	if(visibleZombi)
+		zombiModelAnimate.render(modelMatrixZombiBody);
 	glEnable(GL_CULL_FACE);
 
 	//**** INICIA personaje ENEMY
@@ -2800,8 +3103,79 @@ void renderSolidScene(){
 	modelArco.render(modelMatrixArcoCopy);
 	glEnable(GL_CULL_FACE);
 	
+	//renderizado de Zombis
+	glDisable(GL_CULL_FACE);
+	modelMatrixZombi_1a[3][1] = terrain.getHeightTerrain(modelMatrixZombi_1a[3][0] , modelMatrixZombi_1a[3][2]);
+	glm::mat4 modelMatrixZombi_1aCopy = glm::scale(modelMatrixZombi_1a, glm::vec3(0.015f));
+	if(visibleZombi_1a)
+		modelZombi_1a.render(modelMatrixZombi_1aCopy);
+	glEnable(GL_CULL_FACE);
+
+	glDisable(GL_CULL_FACE);
+	modelMatrixZombi_1b[3][1] = terrain.getHeightTerrain(modelMatrixZombi_1b[3][0] , modelMatrixZombi_1b[3][2]);
+	glm::mat4 modelMatrixZombi_1bCopy = glm::scale(modelMatrixZombi_1b, glm::vec3(0.015f));
+	if(visibleZombi_1b)
+		modelZombi_1b.render(modelMatrixZombi_1bCopy);
+	glEnable(GL_CULL_FACE);
 
 
+	glDisable(GL_CULL_FACE);
+	modelMatrixZombi_1c[3][1] = terrain.getHeightTerrain(modelMatrixZombi_1c[3][0] , modelMatrixZombi_1c[3][2]);
+	glm::mat4 modelMatrixZombi_1cCopy = glm::scale(modelMatrixZombi_1c, glm::vec3(0.015f));
+	if(visibleZombi_1c)
+		modelZombi_1c.render(modelMatrixZombi_1cCopy);
+	glEnable(GL_CULL_FACE);
+
+	glDisable(GL_CULL_FACE);
+	modelMatrixZombi_1d[3][1] = terrain.getHeightTerrain(modelMatrixZombi_1d[3][0] , modelMatrixZombi_1d[3][2]);
+	glm::mat4 modelMatrixZombi_1dCopy = glm::scale(modelMatrixZombi_1d, glm::vec3(0.015f));
+	if(visibleZombi_1d)
+		modelZombi_1d.render(modelMatrixZombi_1dCopy);
+	glEnable(GL_CULL_FACE);
+	
+	glDisable(GL_CULL_FACE);
+	modelMatrixZombi_2a[3][1] = terrain.getHeightTerrain(modelMatrixZombi_2a[3][0] , modelMatrixZombi_2a[3][2]);
+	glm::mat4 modelMatrixZombi_2aCopy = glm::scale(modelMatrixZombi_2a, glm::vec3(0.015f));
+	if(visibleZombi_2a)
+		modelZombi_2a.render(modelMatrixZombi_2aCopy);
+	glEnable(GL_CULL_FACE);
+
+	glDisable(GL_CULL_FACE);
+	modelMatrixZombi_2b[3][1] = terrain.getHeightTerrain(modelMatrixZombi_2b[3][0] , modelMatrixZombi_2b[3][2]);
+	glm::mat4 modelMatrixZombi_2bCopy = glm::scale(modelMatrixZombi_2b, glm::vec3(0.015f));
+	if(visibleZombi_2b)
+		modelZombi_2b.render(modelMatrixZombi_2bCopy);
+	glEnable(GL_CULL_FACE);
+
+	glDisable(GL_CULL_FACE);
+	modelMatrixZombi_2c[3][1] = terrain.getHeightTerrain(modelMatrixZombi_2c[3][0] , modelMatrixZombi_2c[3][2]);
+	glm::mat4 modelMatrixZombi_2cCopy = glm::scale(modelMatrixZombi_2c, glm::vec3(0.015f));
+	if(visibleZombi_2c)
+		modelZombi_2c.render(modelMatrixZombi_2cCopy);
+	glEnable(GL_CULL_FACE);
+
+	glDisable(GL_CULL_FACE);
+	modelMatrixZombi_3a[3][1] = terrain.getHeightTerrain(modelMatrixZombi_3a[3][0] , modelMatrixZombi_3a[3][2]);
+	glm::mat4 modelMatrixZombi_3aCopy = glm::scale(modelMatrixZombi_3a, glm::vec3(0.015f));
+	if(visibleZombi_3a)
+		modelZombi_3a.render(modelMatrixZombi_3aCopy);
+	glEnable(GL_CULL_FACE);
+
+	glDisable(GL_CULL_FACE);
+	modelMatrixZombi_3b[3][1] = terrain.getHeightTerrain(modelMatrixZombi_3b[3][0] , modelMatrixZombi_3b[3][2]);
+	glm::mat4 modelMatrixZombi_3bCopy = glm::scale(modelMatrixZombi_3b, glm::vec3(0.015f));
+	if(visibleZombi_3b)
+		modelZombi_3b.render(modelMatrixZombi_3bCopy);
+	glEnable(GL_CULL_FACE);
+
+	glDisable(GL_CULL_FACE);
+	modelMatrixZombi_3c[3][1] = terrain.getHeightTerrain(modelMatrixZombi_3c[3][0] , modelMatrixZombi_3c[3][2]);
+	glm::mat4 modelMatrixZombi_3cCopy = glm::scale(modelMatrixZombi_3c, glm::vec3(0.015f));
+	if(visibleZombi_3c)
+		modelZombi_3c.render(modelMatrixZombi_3cCopy);
+	glEnable(GL_CULL_FACE);
+
+	
 
 	/*******************************************
 	 * Skybox
@@ -2883,7 +3257,7 @@ void renderAlphaScene(bool render){
 		else if(it->second.first.compare("heli") == 0){
 			// Helicopter
 			glm::mat4 modelMatrixHeliChasis = glm::mat4(modelMatrixHeli);
-			modelHeliChasis.render(modelMatrixHeliChasis);
+			//modelHeliChasis.render(modelMatrixHeliChasis);
 
 			glm::mat4 modelMatrixHeliHeli = glm::mat4(modelMatrixHeliChasis);
 			modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, -0.249548));
@@ -3003,6 +3377,22 @@ void renderAlphaScene(bool render){
 		//modelText->render("Texto en OpenGL", -1, 0);
 		std::stringstream ss; ss <<puntuacion ;   //instruccion para obtener una entrada numero entero y convertirlo en cadena posteriormente
 		modelText->render("Puntos: " +ss.str() , -1, 0);
+
+		if(sumaColisionOBB_OBB>81)
+		{
+			std::stringstream ss; ss <<puntuacion ;   //instruccion para obtener una entrada numero entero y convertirlo en cadena posteriormente
+			
+			modelText->render("Puntos: " +ss.str()+"..............Perdiste JA JA JA JA JA JA.." , -1, 0);
+			Sleep(1000);
+			//gameOver = true;
+			
+		} else
+		{
+			std::stringstream ss; ss <<puntuacion ;   //instruccion para obtener una entrada numero entero y convertirlo en cadena posteriormente
+			modelText->render("Puntos: " +ss.str() , -1, 0);
+		} 
+
+		
 		
 	}
 	glEnable(GL_CULL_FACE);
@@ -3054,9 +3444,10 @@ void applicationLoop() {
 	modelMatrixCowboy = glm::translate(modelMatrixCowboy, glm::vec3(13.0, 0.05, 0.0));
 
 	modelMatrixGuardian = glm::translate(modelMatrixGuardian, glm::vec3(15, 0.05, 0.0));
-	modelMatrixGuardian = glm::rotate(modelMatrixGuardian, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
+	//modelMatrixGuardian = glm::rotate(modelMatrixGuardian, glm::radians(-90.0f), glm::vec3(0.0, 0.0, 1.0));
 
-	modelMatrixCyborg = glm::translate(modelMatrixCyborg, glm::vec3(5.0f, 0.05, 0.0f));
+	modelMatrixZombi = glm::translate(modelMatrixZombi, glm::vec3(5.0f, 0.0f,5.0f));
+	//modelMatrixZombi = glm::rotate(modelMatrixZombi, glm::radians(-90.0f), glm::vec3(0, 1, 0));
 
 	modelMatrixEnemy = glm::translate(modelMatrixEnemy, glm::vec3(-76.33f,0.05f,-72.51f));
 	
@@ -3097,9 +3488,18 @@ void applicationLoop() {
 
 	modelMatrixArco = glm::translate(modelMatrixArco, glm::vec3(-23.33, 0.0, 18.61));
 
-
-
-
+	modelMatrixZombi_1a = glm::translate(modelMatrixZombi_1a, glm::vec3(-57.32, 0.0, 54.96)); 
+	modelMatrixZombi_1b = glm::translate(modelMatrixZombi_1b, glm::vec3(10.87, 0.0, 54.11)); 
+	modelMatrixZombi_1c = glm::translate(modelMatrixZombi_1c, glm::vec3(-17.08, 0.0, -44.56)); 
+	modelMatrixZombi_1d = glm::translate(modelMatrixZombi_1d, glm::vec3(-41.79, 0.0, -80.62)); 
+	modelMatrixZombi_2a = glm::translate(modelMatrixZombi_2a, glm::vec3(-28.24, 0.0, 64.69)); 
+	modelMatrixZombi_2b = glm::translate(modelMatrixZombi_2b, glm::vec3(40.93, 0.0, 35.21)); 
+	modelMatrixZombi_2c = glm::translate(modelMatrixZombi_2c, glm::vec3(-33.68, 0.0, -71.18)); 
+	modelMatrixZombi_3a = glm::translate(modelMatrixZombi_3a, glm::vec3(-19.08, 0.0, 29.19)); 
+	modelMatrixZombi_3b = glm::translate(modelMatrixZombi_3b, glm::vec3(-23.37, 0.0, -55.15)); 
+	modelMatrixZombi_3c = glm::translate(modelMatrixZombi_3c, glm::vec3(54.96, 0.0, 15.74)); 
+	
+	
 	modelMatrixFountain = glm::translate(modelMatrixFountain, glm::vec3(-1.07, 0.0, -3.62));
 
 	// Variables to interpolation key frames
@@ -3628,7 +4028,193 @@ void applicationLoop() {
 		fruta9Collider.c = glm::vec3(modelMatrixColliderFruta9[3]);
 		fruta9Collider.ratio = modelFruta.getSbb().ratio * 1.2;
 		addOrUpdateColliders(collidersSBB, "fruta9", fruta9Collider, modelMatrixFruta9);
+
+
 		
+		//Al centro de la escena
+		//ZOMBI CORRIENDO
+		AbstractModel::OBB zombiCollider;
+		glm::mat4 modelMatrixColliderZombi = glm::mat4(modelMatrixZombi);
+		modelMatrixColliderZombi = glm::rotate(modelMatrixColliderZombi,
+				glm::radians(-90.0f), glm::vec3(1, 0, 0));
+		// Set the orientation of collider before doing the scale
+		zombiCollider.u = glm::quat_cast(modelMatrixZombi);
+		modelMatrixColliderZombi = glm::scale(modelMatrixColliderZombi, glm::vec3(1.0));
+		modelMatrixColliderZombi = glm::translate(modelMatrixColliderZombi, 
+								glm::vec3(zombiModelAnimate.getObb().c.x,
+								zombiModelAnimate.getObb().c.y,
+								zombiModelAnimate.getObb().c.z));
+		zombiCollider.e = zombiModelAnimate.getObb().e * glm::vec3(1.0)*glm::vec3(0.5, 5.0, 0.3);
+		zombiCollider.c = glm::vec3(modelMatrixColliderZombi[3]);
+		addOrUpdateColliders(collidersOBB, "zombi-", zombiCollider, modelMatrixZombi);
+
+		//zombi 1a
+		AbstractModel::OBB zombi_1aCollider;
+		glm::mat4 modelMatrixColliderZombi_1a = glm::mat4(modelMatrixZombi_1a);
+		modelMatrixColliderZombi_1a = glm::rotate(modelMatrixColliderZombi_1a,
+				glm::radians(-90.0f), glm::vec3(1, 0, 0));
+		// Set the orientation of collider before doing the scale
+		zombi_1aCollider.u = glm::quat_cast(modelMatrixZombi_1a);
+		modelMatrixColliderZombi_1a = glm::scale(modelMatrixColliderZombi_1a, glm::vec3(1.0));
+		modelMatrixColliderZombi_1a = glm::translate(modelMatrixColliderZombi_1a, 
+								glm::vec3(modelZombi_1a.getObb().c.x,
+								modelZombi_1a.getObb().c.y,
+								modelZombi_1a.getObb().c.z));
+		zombi_1aCollider.e = modelZombi_1a.getObb().e * glm::vec3(1.0)*glm::vec3(0.5, 5.0, 0.3);
+		zombi_1aCollider.c = glm::vec3(modelMatrixColliderZombi_1a[3]);
+		addOrUpdateColliders(collidersOBB, "zombi_1a-", zombi_1aCollider, modelMatrixZombi_1a);
+
+		//zombi 1b
+		AbstractModel::OBB zombi_1bCollider;
+		glm::mat4 modelMatrixColliderZombi_1b = glm::mat4(modelMatrixZombi_1b);
+		//modelMatrixColliderZombi_1b = glm::rotate(modelMatrixColliderZombi_1b,
+		//		glm::radians(-90.0f), glm::vec3(1, 0, 0));
+		// Set the orientation of collider before doing the scale
+		zombi_1bCollider.u = glm::quat_cast(modelMatrixZombi_1b);
+		modelMatrixColliderZombi_1b = glm::scale(modelMatrixColliderZombi_1b, glm::vec3(1.0));
+		modelMatrixColliderZombi_1b = glm::translate(modelMatrixColliderZombi_1b, 
+								glm::vec3(modelZombi_1b.getObb().c.x,
+								modelZombi_1b.getObb().c.y,
+								modelZombi_1b.getObb().c.z));
+		zombi_1bCollider.e = modelZombi_1b.getObb().e * glm::vec3(1.0)*glm::vec3(0.5, 5.0, 0.3);
+		zombi_1bCollider.c = glm::vec3(modelMatrixColliderZombi_1b[3]);
+		addOrUpdateColliders(collidersOBB, "zombi_1b-", zombi_1bCollider, modelMatrixZombi_1b);
+
+		//zombi 1c
+		AbstractModel::OBB zombi_1cCollider;
+		glm::mat4 modelMatrixColliderZombi_1c = glm::mat4(modelMatrixZombi_1c);
+		//modelMatrixColliderZombi_1c = glm::rotate(modelMatrixColliderZombi_1c,
+		//		glm::radians(-90.0f), glm::vec3(1, 0, 0));
+		// Set the orientation of collider before doing the scale
+		zombi_1cCollider.u = glm::quat_cast(modelMatrixZombi_1c);
+		modelMatrixColliderZombi_1c = glm::scale(modelMatrixColliderZombi_1c, glm::vec3(1.0));
+		modelMatrixColliderZombi_1c = glm::translate(modelMatrixColliderZombi_1c, 
+								glm::vec3(modelZombi_1c.getObb().c.x,
+								modelZombi_1c.getObb().c.y,
+								modelZombi_1c.getObb().c.z));
+		zombi_1cCollider.e = modelZombi_1c.getObb().e * glm::vec3(1.0)*glm::vec3(0.5, 5.0, 0.3);
+		zombi_1cCollider.c = glm::vec3(modelMatrixColliderZombi_1c[3]);
+		addOrUpdateColliders(collidersOBB, "zombi_1c-", zombi_1cCollider, modelMatrixZombi_1c);
+
+
+		//cubos colisionadores OBB
+
+		//ZOMBI 1d
+		AbstractModel::OBB zombi_1dCollider;
+		glm::mat4 modelMatrixColliderZombi_1d = glm::mat4(modelMatrixZombi_1d);
+		modelMatrixColliderZombi_1d = glm::rotate(modelMatrixColliderZombi_1d,
+				glm::radians(-90.0f), glm::vec3(1, 0, 0));
+		
+		// Set the orientation of collider before doing the scale
+		zombi_1dCollider.u = glm::quat_cast(modelMatrixColliderZombi_1d);
+		modelMatrixColliderZombi_1d = glm::scale(modelMatrixColliderZombi_1d, glm::vec3(1.0));
+		modelMatrixColliderZombi_1d = glm::translate(modelMatrixColliderZombi_1d, 
+								glm::vec3(modelZombi_1d.getObb().c.x,
+								modelZombi_1d.getObb().c.y,
+								modelZombi_1d.getObb().c.z));
+		zombi_1dCollider.e = modelZombi_1d.getObb().e * glm::vec3(1.0) * glm::vec3(0.5, 5.0, 0.3);
+		zombi_1dCollider.c = glm::vec(modelMatrixColliderZombi_1d[3]);
+		addOrUpdateColliders(collidersOBB, "zombi_1d-", zombi_1dCollider, modelMatrixZombi_1d);
+
+
+		//zombi 2a
+		AbstractModel::OBB zombi_2aCollider;
+		glm::mat4 modelMatrixColliderZombi_2a = glm::mat4(modelMatrixZombi_2a);
+		modelMatrixColliderZombi_2a = glm::rotate(modelMatrixColliderZombi_2a,
+				glm::radians(-90.0f), glm::vec3(1, 0, 0));
+		// Set the orientation of collider before doing the scale
+		zombi_2aCollider.u = glm::quat_cast(modelMatrixZombi_2a);
+		modelMatrixColliderZombi_2a = glm::scale(modelMatrixColliderZombi_2a, glm::vec3(1.0));
+		modelMatrixColliderZombi_2a = glm::translate(modelMatrixColliderZombi_2a, 
+								glm::vec3(modelZombi_2a.getObb().c.x,
+								modelZombi_2a.getObb().c.y,
+								modelZombi_2a.getObb().c.z));
+		zombi_2aCollider.e = modelZombi_2a.getObb().e * glm::vec3(1.0)*glm::vec3(0.5, 5.0, 0.3);
+		zombi_2aCollider.c = glm::vec3(modelMatrixColliderZombi_2a[3]);
+		addOrUpdateColliders(collidersOBB, "zombi_2a-", zombi_2aCollider, modelMatrixZombi_2a);
+
+		//zombi 2b
+		AbstractModel::OBB zombi_2bCollider;
+		glm::mat4 modelMatrixColliderZombi_2b = glm::mat4(modelMatrixZombi_2b);
+		modelMatrixColliderZombi_2b = glm::rotate(modelMatrixColliderZombi_2b,
+				glm::radians(-90.0f), glm::vec3(1, 0, 0));
+		// Set the orientation of collider before doing the scale
+		zombi_2bCollider.u = glm::quat_cast(modelMatrixZombi_2b);
+		modelMatrixColliderZombi_2b = glm::scale(modelMatrixColliderZombi_2b, glm::vec3(1.0));
+		modelMatrixColliderZombi_2b = glm::translate(modelMatrixColliderZombi_2b, 
+								glm::vec3(modelZombi_2b.getObb().c.x,
+								modelZombi_2b.getObb().c.y,
+								modelZombi_2b.getObb().c.z));
+		zombi_2bCollider.e = modelZombi_2b.getObb().e * glm::vec3(1.0)*glm::vec3(0.5, 5.0, 0.3);
+		zombi_2bCollider.c = glm::vec3(modelMatrixColliderZombi_2b[3]);
+		addOrUpdateColliders(collidersOBB, "zombi_2b-", zombi_2bCollider, modelMatrixZombi_2b);
+
+		//zombi 2c
+		AbstractModel::OBB zombi_2cCollider;
+		glm::mat4 modelMatrixColliderZombi_2c = glm::mat4(modelMatrixZombi_2c);
+		modelMatrixColliderZombi_2c = glm::rotate(modelMatrixColliderZombi_2c,
+				glm::radians(-90.0f), glm::vec3(1, 0, 0));
+		// Set the orientation of collider before doing the scale
+		zombi_2cCollider.u = glm::quat_cast(modelMatrixZombi_2c);
+		modelMatrixColliderZombi_2c = glm::scale(modelMatrixColliderZombi_2c, glm::vec3(1.0));
+		modelMatrixColliderZombi_2c = glm::translate(modelMatrixColliderZombi_2c, 
+								glm::vec3(modelZombi_2c.getObb().c.x,
+								modelZombi_2c.getObb().c.y,
+								modelZombi_2c.getObb().c.z));
+		zombi_2cCollider.e = modelZombi_2c.getObb().e * glm::vec3(1.0)*glm::vec3(0.5, 5.0, 0.3);
+		zombi_2cCollider.c = glm::vec3(modelMatrixColliderZombi_2c[3]);
+		addOrUpdateColliders(collidersOBB, "zombi_2c-", zombi_2cCollider, modelMatrixZombi_2c);
+
+
+		//zombi 3a
+		AbstractModel::OBB zombi_3aCollider;
+		glm::mat4 modelMatrixColliderZombi_3a = glm::mat4(modelMatrixZombi_3a);
+		modelMatrixColliderZombi_3a = glm::rotate(modelMatrixColliderZombi_3a,
+				glm::radians(-90.0f), glm::vec3(1, 0, 0));
+		// Set the orientation of collider before doing the scale
+		zombi_3aCollider.u = glm::quat_cast(modelMatrixZombi_3a);
+		modelMatrixColliderZombi_3a = glm::scale(modelMatrixColliderZombi_3a, glm::vec3(1.0));
+		modelMatrixColliderZombi_3a = glm::translate(modelMatrixColliderZombi_3a, 
+								glm::vec3(modelZombi_3a.getObb().c.x,
+								modelZombi_3a.getObb().c.y,
+								modelZombi_3a.getObb().c.z));
+		zombi_3aCollider.e = modelZombi_3a.getObb().e * glm::vec3(1.0)*glm::vec3(0.5, 5.0, 0.3);
+		zombi_3aCollider.c = glm::vec3(modelMatrixColliderZombi_3a[3]);
+		addOrUpdateColliders(collidersOBB, "zombi_3a-", zombi_3aCollider, modelMatrixZombi_3a);
+
+		//zombi 3b
+		AbstractModel::OBB zombi_3bCollider;
+		glm::mat4 modelMatrixColliderZombi_3b = glm::mat4(modelMatrixZombi_3b);
+		modelMatrixColliderZombi_3b = glm::rotate(modelMatrixColliderZombi_3b,
+				glm::radians(-90.0f), glm::vec3(1, 0, 0));
+		// Set the orientation of collider before doing the scale
+		zombi_3bCollider.u = glm::quat_cast(modelMatrixZombi_3b);
+		modelMatrixColliderZombi_3b = glm::scale(modelMatrixColliderZombi_3b, glm::vec3(1.0));
+		modelMatrixColliderZombi_3b = glm::translate(modelMatrixColliderZombi_3b, 
+								glm::vec3(modelZombi_3b.getObb().c.x,
+								modelZombi_3b.getObb().c.y,
+								modelZombi_3b.getObb().c.z));
+		zombi_3bCollider.e = modelZombi_3b.getObb().e * glm::vec3(1.0)*glm::vec3(0.5, 5.0, 0.3);
+		zombi_3bCollider.c = glm::vec3(modelMatrixColliderZombi_3b[3]);
+		addOrUpdateColliders(collidersOBB, "zombi_3b-", zombi_3bCollider, modelMatrixZombi_3b);
+
+		//zombi 3c
+		AbstractModel::OBB zombi_3cCollider;
+		glm::mat4 modelMatrixColliderZombi_3c = glm::mat4(modelMatrixZombi_3c);
+		modelMatrixColliderZombi_3c = glm::rotate(modelMatrixColliderZombi_3c,
+				glm::radians(-90.0f), glm::vec3(1, 0, 0));
+		// Set the orientation of collider before doing the scale
+		zombi_3cCollider.u = glm::quat_cast(modelMatrixZombi_3c);
+		modelMatrixColliderZombi_3c = glm::scale(modelMatrixColliderZombi_3c, glm::vec3(1.0));
+		modelMatrixColliderZombi_3c = glm::translate(modelMatrixColliderZombi_3c, 
+								glm::vec3(modelZombi_3c.getObb().c.x,
+								modelZombi_3c.getObb().c.y,
+								modelZombi_3c.getObb().c.z));
+		zombi_3cCollider.e = modelZombi_3c.getObb().e * glm::vec3(1.0)*glm::vec3(0.5, 5.0, 0.3);
+		zombi_3cCollider.c = glm::vec3(modelMatrixColliderZombi_3c[3]);
+		addOrUpdateColliders(collidersOBB, "zombi_3c-", zombi_3cCollider, modelMatrixZombi_3c);
+
+
 		// Lamps1 colliders
 		for (int i = 0; i < lamp1Position.size(); i++){
 			AbstractModel::OBB lampCollider;
@@ -3799,10 +4385,110 @@ void applicationLoop() {
 					testOBBOBB(std::get<0>(it->second), std::get<0>(jt->second))) {
 					std::cout << "Hay colision entre " << it->first << " y el modelo" <<
 						jt->first << std::endl;
-					sumaColisionOBB_OBB += 1;
-					std::cout << "sumaColisionOBB_OBB " << sumaColisionOBB_OBB << std::endl;
-					std::cout << "texturaActiva " << textureActivaID << std::endl;
-					puntuacion+=10;
+						if(it->first == "zombi-" && isPunch == true){				 //***********PARA DESAPARECER LAS FRUTAS
+							visibleZombi = false;
+							puntuacion+=500;
+							//sourcesPlay[7]=true;
+						}
+						else if(it->first == "zombi-" && isPunch == false)			 //***********PARA DESAPARECER LAS FRUTAS
+							if (visibleZombi != false)
+								sumaColisionOBB_OBB += 1;
+								//sourcesPlay[6]=true;
+						if(it->first == "zombi_1a-" && isPunch == true){
+							visibleZombi_1a = false;
+							puntuacion+=500;
+							//sourcesPlay[7]=true;
+						}
+						else if(it->first == "zombi_1a-" && isPunch == false)
+							if (visibleZombi != false)
+								sumaColisionOBB_OBB += 1;
+								//sourcesPlay[6]=true;
+						if(it->first == "zombi_1b-" && isPunch == true){
+							visibleZombi_1b = false ;
+							puntuacion+=500;
+							//sourcesPlay[7]=true;
+						}
+						else if(it->first == "zombi_1b-" && isPunch == false)
+							if (visibleZombi != false)
+								sumaColisionOBB_OBB += 1;
+								//sourcesPlay[6]=true;
+						if(it->first == "zombi_1c-" && isPunch == true){
+							visibleZombi_1c = false;
+							puntuacion+=500;
+							//sourcesPlay[7]=true;
+						}
+						else if(it->first == "zombi_1c-" && isPunch == false)
+							if (visibleZombi != false)
+								sumaColisionOBB_OBB += 1;
+								//sourcesPlay[6]=true;
+						if(it->first == "zombi_1d-" && isPunch == true){
+							visibleZombi_1d = false;
+							puntuacion+=500;
+							//sourcesPlay[7]=true;
+						}
+						else if(it->first == "zombi_1d-" && isPunch == false)
+							if (visibleZombi != false)
+								sumaColisionOBB_OBB += 1;
+								//sourcesPlay[6]=true;
+						if(it->first == "zombi_2a-" && isPunch == true){
+							visibleZombi_2a = false;
+							puntuacion+=500;
+							//sourcesPlay[7]=true;
+						}
+						else if(it->first == "zombi_2a-" && isPunch == false)
+							if (visibleZombi != false)
+								sumaColisionOBB_OBB += 1;
+								//sourcesPlay[6]=true;
+						if(it->first == "zombi_2b-" && isPunch == true){
+							visibleZombi_2b = false;
+							puntuacion+=500;
+							//sourcesPlay[7]=true;
+						}
+						else if(it->first == "zombi_2b-" && isPunch == false)
+							if (visibleZombi != false)
+								sumaColisionOBB_OBB += 1;
+								//sourcesPlay[6]=true;
+						if(it->first == "zombi_2c-" && isPunch == true){
+							visibleZombi_2c = false;
+							puntuacion+=500;
+							//sourcesPlay[7]=true;
+						}
+						else if(it->first == "zombi_2c-" && isPunch == false)
+							if (visibleZombi != false)
+								sumaColisionOBB_OBB += 1;
+								//sourcesPlay[6]=true;
+						if(it->first == "zombi_3a-" && isPunch == true){
+							visibleZombi_3a = false;
+							puntuacion+=500;
+							//sourcesPlay[7]=true;
+						}
+						else if(it->first == "zombi_3a-" && isPunch == false)
+							if (visibleZombi != false)
+								sumaColisionOBB_OBB += 1;
+								//sourcesPlay[6]=true;
+						if(it->first == "zombi_3b-" && isPunch == true){
+							visibleZombi_3b = false;
+							puntuacion+=500;
+							//sourcesPlay[7]=true;
+						}
+						else if(it->first == "zombi_3b-" && isPunch == false)
+							if (visibleZombi != false)
+								sumaColisionOBB_OBB += 1;
+								//sourcesPlay[6]=true;
+						if(it->first == "zombi_3c-" && isPunch == true){
+							visibleZombi_3c = false;
+							puntuacion+=500;
+							//sourcesPlay[7]=true;
+							
+						}
+						else if(it->first == "zombi_3c-" && isPunch == false)
+							if (visibleZombi != false)
+								sumaColisionOBB_OBB += 1;
+								//sourcesPlay[6]=true;
+					
+					//sumaColisionOBB_OBB += 1;
+					
+					
 					isColision = true;
 				}
 			}
@@ -3820,25 +4506,44 @@ void applicationLoop() {
 				if (testSphereOBox(std::get<0>(it->second), std::get<0>(jt->second))) {
 					std::cout << "Hay colision del " << it->first << " y el modelo" <<
 						jt->first << std::endl;           
-						puntuacion+=250;
-						if(it->first == "fruta1")				 //***********PARA DESAPARECER LAS FRUTAS
+						if(it->first == "fruta1" && opcionPresionarBoton1 == true){ //***********PARA DESAPARECER LAS FRUTAS
 							visibleFruta1 = false;
-						if(it->first == "fruta2")
+							puntuacion+=250;
+						}
+						if(it->first == "fruta2" && opcionPresionarBoton1 == true){
 							visibleFruta2 = false;
-						if(it->first == "fruta3")
+							puntuacion+=250;
+						}
+						if(it->first == "fruta3" && opcionPresionarBoton1 == true){
 							visibleFruta3 = false;
-						if(it->first == "fruta4")
+							puntuacion+=250;
+						}
+						if(it->first == "fruta4" && opcionPresionarBoton1 == true){
 							visibleFruta4 = false;
-						if(it->first == "fruta5")
+							puntuacion+=250;
+						}
+						if(it->first == "fruta5" && opcionPresionarBoton1 == true){
 							visibleFruta5 = false;
-						if(it->first == "fruta6")
+							puntuacion+=250;
+						}
+						if(it->first == "fruta6" && opcionPresionarBoton1 == true){
 							visibleFruta6 = false;
-						if(it->first == "fruta7")
+							puntuacion+=250;
+						}
+						if(it->first == "fruta7" && opcionPresionarBoton1 == true){
 							visibleFruta7 = false;
-						if(it->first == "fruta8")
+							puntuacion+=250;
+						}
+						if(it->first == "fruta8" && opcionPresionarBoton1 == true){
 							visibleFruta8 = false;
-						if(it->first == "fruta9")
+							puntuacion+=250;
+						}
+						if(it->first == "fruta9" && opcionPresionarBoton1 == true){
 							visibleFruta9 = false;
+							puntuacion+=250;
+						}
+						
+
 
 					isCollision = true;
 					addOrUpdateCollisionDetection(collisionDetection, jt->first, true);
@@ -4108,6 +4813,16 @@ void applicationLoop() {
 		rotHelHelY += 0.5;
 		rotHelHelBack += 0.5;
 		animationLuffyIndex = 1;
+		x1 -=0.05f;
+		z1 -=0.05f;
+		energiaVida -=0.01;
+		
+		/*if(abs(10.0-x1)<=1.0f)
+		{
+		  x1 = 0.0f;
+		  limite_acercar = true;
+
+		}*/
 
 		glfwSwapBuffers(window);
 
@@ -4120,15 +4835,6 @@ void applicationLoop() {
 		source0Pos[2] = modelMatrixFountain[3].z;
 		alSourcefv(source[0], AL_POSITION, source0Pos);
 
-		source1Pos[0] = modelMatrixGuardian[3].x;
-		source1Pos[1] = modelMatrixGuardian[3].y;
-		source1Pos[2] = modelMatrixGuardian[3].z;
-		alSourcefv(source[1], AL_POSITION, source1Pos);
-		
-		source2Pos[0] = modelMatrixDart[3].x;
-		source2Pos[1] = modelMatrixDart[3].y;
-		source2Pos[2] = modelMatrixDart[3].z;
-		alSourcefv(source[2], AL_POSITION, source2Pos);
 
 		// Listener for the Thris person camera
 		listenerPos[0] = modelMatrixLuffy[3].x;
